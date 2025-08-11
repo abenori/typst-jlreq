@@ -6,6 +6,7 @@
 #let jlreq-sansfont = state("jlreq-sansfont","New Computer Modern")
 #let jlreq-sansfont-cjk = state("jlreq-sansfont-cjk","Hiragino Kaku Gothic ProN")
 #let jlreq-non-cjk = state("jlreq-non-cjk", regex("[\u0000-\u2023]"))
+#let jlreq-twoside = state("jlreq-twoside", false)
 
 #let papersizelist = (
   a0paper: (841mm,1189mm),
@@ -268,12 +269,14 @@
 }
 
 #let get-real-nombre(nombre) = {
-  if nombre == none { return [] }
-  else if nombbre == auto { return counter(page).display() }
-  else { return nombre }
+  context{
+    if nombre == none { return [] }
+    else if nombre == auto { return counter(page).display() }
+    else { return nombre }
+  }
 }
 
-#let jlreq-pagestyle(
+#let jlreq-get-header-footer(
   running-head-font: auto,
   running-head-font-cjk: auto,
   running-head-font-weight: "regular",
@@ -293,7 +296,6 @@
   nombre-gap: auto,
   running-head-gap: auto,
   gap: 1.5cm,
-  body
 
 ) = {
   if nombre-gap == auto { nombre-gap = gap }
@@ -311,7 +313,11 @@
 
   let each-parts(pos) = {
     context{
-      let odd = { calc.rem-euclid(here().page(),2) == 1 }
+      //twoside = falseの時は常にodd扱い
+      let odd = {
+        if jlreq-twoside.get() == true {calc.rem-euclid(here().page(),2) == 1 }
+        else { true }
+      }
       let runheads = {
         let i = 0;
         let rv = none;
@@ -319,9 +325,9 @@
           if(running-head-position.at(i, default: top + center) == pos){
             let runhead = {
               if odd == true {
-                return get-real-running-head(odd-running-head.at(i,default: none), true)
+                get-real-running-head(odd-running-head.at(i,default: none), true)
               } else {
-                return get-real-running-head(even-running-head.at(i,default: none), false)
+                get-real-running-head(even-running-head.at(i,default: none), false)
               }
             }
             if runhead != none { 
@@ -331,14 +337,14 @@
           }
           i = i + 1
         }
-        return rv
+        rv
       }
       let nombres = {
         let i = 0
         let rv = none
         while(i < nombre.len()){
           if nombre-position.at(i, default: bottom + center) == pos {
-            let n = get-reaul-nombre(nombre.at(i, default: none));
+            let n = get-real-nombre(nombre.at(i, default: none));
             if n != none {
               if rv == none { rv = n }
               else { rv = rv + h(nombre-gap) + n }
@@ -346,8 +352,9 @@
           }
           i = i + 1
         }
-        return rv
+        rv
       }
+
 
       return {
         if runheads == none {
@@ -385,13 +392,73 @@
     }
     return connect(connect(l,c),r)
   }
-  set page(
-    header: ueshita(top),
-    footer: ueshita(bottom)
-  )
-  body
+  return (ueshita(top),ueshita(bottom))
 }
 
+#let jlreq-pagestyle(
+  running-head-font: auto,
+  running-head-font-cjk: auto,
+  running-head-font-weight: "regular",
+  running-head-fontsize: 1em,
+  nombre-font: auto,
+  nombre-font-cjk: auto,
+  nombre-font-weight: "bold",
+  nombre-fontsize: 1em,
+  nombre: auto,
+  odd-running-head: none,
+  even-running-head: none,
+  running-head-position: top + left,
+  nombre-position: bottom + center,
+  running-head-fmt: a => a,
+  nombre-fmt: a => a,
+  sidemargin: 0cm,
+  nombre-gap: auto,
+  running-head-gap: auto,
+  gap: 1.5cm,
+  body
+) = {
+  context{
+    let runhead-font = {
+      if running-head-font == auto { jlreq-sansfont.get() }
+      else { running-head-font }
+    }
+    let runhead-font-cjk = {
+      if running-head-font-cjk == auto { jlreq-sansfont-cjk.get() }
+      else { running-head-font-cjk }
+    }
+    let nomb-font = {
+      if nombre-font == auto { jlreq-sansfont.get() }
+      else { nombre-font }
+    }
+    let nomb-font-cjk = {
+      if nombre-font-cjk == auto { jlreq-sansfont-cjk.get() }
+      else { nombre-font-cjk }
+    }
+    let (h,f) = jlreq-get-header-footer(
+      running-head-font:   runhead-font,
+      running-head-font-cjk:   runhead-font-cjk,
+      running-head-font-weight:   running-head-font-weight,
+      running-head-fontsize:   running-head-fontsize,
+      nombre-font:   nomb-font,
+      nombre-font-cjk:   nomb-font-cjk,
+      nombre-font-weight:   nombre-font-weight,
+      nombre-fontsize:   nombre-fontsize,
+      nombre:   nombre,
+      odd-running-head:   odd-running-head,
+      even-running-head:   even-running-head,
+      running-head-position:   running-head-position,
+      nombre-position:   nombre-position,
+      running-head-fmt:   running-head-fmt,
+      nombre-fmt:   nombre-fmt,
+      sidemargin:   sidemargin,
+      nombre-gap:   nombre-gap,
+      running-head-gap:   running-head-gap,
+      gap:   gap,
+      )
+    set page(header: h, footer: f)
+    body
+  }
+}
 
 #let jlreq(  
   seriffont: "New Computer Modern", // or "Libertinus Serif" or "Source Serif Pro"
@@ -423,6 +490,7 @@
   jlreq-sansfont.update(sansfont)
   jlreq-sansfont-cjk.update(sansfont-cjk)
   jlreq-non-cjk.update(non-cjk)
+  jlreq-twoside.update(twoside)
 
   if baselineskip == auto { baselineskip = 1.75 * fontsize }
   let (paperwidth, paperheight) = jlreq_paper(paper)
