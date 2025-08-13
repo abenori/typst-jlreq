@@ -142,14 +142,15 @@
   txt
 ) = {
   context{
-    let column-gap = jlreq-column-gap.get()
+    // 正しい？
+    let column-gap = columns.gutter.length + columns.gutter.ratio * page.width
     // 和文文字の縦方向長さ
     let letter_height = measure(box[阿]).height
     // 段落間の長さ（block(spacing:**)のやつ）を計測
     let block_spacing = measure(block[#par[阿];#par[阿]]).height - 2 * letter_height
     // baselineskip
     let baselineskip = letter_height + par.leading
-    let be_sp = {
+    let bef_sp = {
       if type(before_space) == int { before_space * baselineskip }
       else { before_space }
     }
@@ -194,8 +195,8 @@
     //inset: (left: indent, right: end-indent), 
     width: textlen, txt)
     // 長さ計算
-    let total_len = baselineskip * (lines - 1) + letter_height
-    let ue = (total_len - measure(b).height)/2 + be_sp
+    let total_len = baselineskip * lines + letter_height
+    let ue = (total_len - measure(b).height)/2 + bef_sp
     let shita = (total_len - measure(b).height)/2 + aft_sp
     set align(al)
     block(
@@ -213,12 +214,9 @@
 #set heading(numbering: "1")
 
 #let jlreq-block-heading(
-  font: auto,
-  font-cjk: auto,
-  font-weight: "bold",
   label-font: auto,
-  label-font-weight: "bold",
-  label-font-cjk: auto,
+  label-font-weight: auto,
+//  label-font-cjk: auto,
   fontsize: 1em,
   label-fontsize: 1em,
   lines: 2,
@@ -228,15 +226,8 @@
   indent: 0em,
   after-label-space: 1em,
   end-indent: 0em,
-  it
+  head
 ) = {
-  let non-cjk = jlreq-non-cjk.get()
-  if font == auto { font = jlreq-sansfont.get() }
-  if font-cjk == auto { font-cjk = jlreq-sansfont-cjk.get() }
-  if label-font == auto { label-font = jlreq-sansfont.get() }
-  if label-font-cjk == auto { label-font-cjk = jlreq-sansfont-cjk.get() }
-  let label-font-set = ((name: label-font, covers: non-cjk), font-cjk)
-  let font-set = ((name: font, covers: non-cjk), font-cjk)
   jlreq_gyodori(
     lines: lines,
     before_space: before_space,
@@ -245,11 +236,21 @@
     end-indent: end-indent,
     al: align,
   {
-    if it.numbering != none {
-      text(font: label-font-set, size: label-fontsize, weight: label-font-weight)[#counter(heading).display()]
+    if head.numbering != none {
+      let cnt = [#counter(heading).display()]
+      if label-font != auto {
+        cnt = text(font: label-font,cnt)
+      }
+      if label-font-weight != auto {
+        cnt = text(weight: label-font-weight,cnt)
+      }
+      if label-fontsize != auto {
+        cnt = text(size: label-fontsize,cnt)
+      }
+      cnt
       h(after-label-space)
     }
-    text(font: label-font-set, size: fontsize, weight: font-weight)[#it.body]
+    head.body
   })
 }
 
@@ -257,45 +258,41 @@
 #let get-real-running-head(runhead, odd) = {
   if runhead == none { return none }
   else if type(runhead) == int {
-    context {
-      let h = heading.where(level: runhead)
-      if odd == true {
-        return query(h.before(here())).at(-1,default: none)
-      } else {
-        return query(h.after(here())).at(0,default: none)
-      }
+    let h = heading.where(level: runhead)
+    if odd == true {
+      return query(h.before(here())).at(-1,default: none)
+    } else {
+      return query(h.after(here())).at(0,default: none)
     }
   } else { return runhead }
 }
 
 #let get-real-nombre(nombre) = {
-  context{
-    if nombre == none { return [] }
-    else if nombre == auto { return counter(page).display() }
-    else { return nombre }
-  }
+  if nombre == none { return [] }
+  else if nombre == auto { return counter(page).display() }
+  else { return nombre }
 }
 
 #let jlreq-get-header-footer(
   running-head-font: auto,
   running-head-font-cjk: auto,
-  running-head-font-weight: "regular",
-  running-head-fontsize: 1em,
+  running-head-font-weight: auto,
+  running-head-fontsize: 0.8em,
   nombre-font: auto,
   nombre-font-cjk: auto,
-  nombre-font-weight: "bold",
-  nombre-fontsize: 1em,
+  nombre-font-weight: auto,
+  nombre-fontsize: 0.8em,
   nombre: auto,
   odd-running-head: none,
   even-running-head: none,
   running-head-position: top + left,
   nombre-position: bottom + center,
-  running-head-fmt: a => a,
+  running-head-fmt: a => a.body,
   nombre-fmt: a => a,
   sidemargin: 0cm,
   nombre-gap: auto,
   running-head-gap: auto,
-  gap: 1.5cm,
+  gap: 1em,
 
 ) = {
   if nombre-gap == auto { nombre-gap = gap }
@@ -313,6 +310,7 @@
 
   let each-parts(pos) = {
     context{
+      let non-cjk = jlreq-non-cjk.get()
       //twoside = falseの時は常にodd扱い
       let odd = {
         if jlreq-twoside.get() == true {calc.rem-euclid(here().page(),2) == 1 }
@@ -330,7 +328,14 @@
                 get-real-running-head(even-running-head.at(i,default: none), false)
               }
             }
-            if runhead != none { 
+            if runhead != none {
+              runhead = text(font: ((name: running-head-font, covers: non-cjk), running-head-font-cjk),running-head-fmt(runhead))
+              if running-head-fontsize != auto {
+                runhead = text(size: running-head-fontsize, runhead)
+              }
+              if running-head-font-weight != auto {
+                runhead = text(weight: running-head-font-weight, runhead)
+              }
               if rv == none { rv = runhead }
               else { rv = rv + h(running-head-gap) + runhead }
             }
@@ -344,10 +349,19 @@
         let rv = none
         while(i < nombre.len()){
           if nombre-position.at(i, default: bottom + center) == pos {
-            let n = get-real-nombre(nombre.at(i, default: none));
-            if n != none {
-              if rv == none { rv = n }
-              else { rv = rv + h(nombre-gap) + n }
+            let nbr = get-real-nombre(nombre.at(i, default: none));
+            if nbr != none {
+              nbr = text(font: ((name: nombre-font, covers: non-cjk), nombre-font-cjk),nbr)
+              if nombre-font-weight != auto {
+                nbr = text(weight: nombre-font-weight, nbr)
+              }
+              if nombre-fontsize != auto {
+                nbr = text(size: nombre-fontsize, nbr)
+              }
+              if rv == none { rv = nbr }
+              else {
+                rv = rv + h(nombre-gap) + nbr
+              }
             }
           }
           i = i + 1
@@ -390,7 +404,7 @@
         else { a + h(1fr) + b }
       }
     }
-    return connect(connect(l,c),r)
+    return h(sidemargin) + connect(connect(l,c),r)
   }
   return (ueshita(top),ueshita(bottom))
 }
@@ -398,18 +412,22 @@
 #let jlreq-pagestyle(
   running-head-font: auto,
   running-head-font-cjk: auto,
-  running-head-font-weight: "regular",
-  running-head-fontsize: 1em,
+  running-head-font-weight: auto,
+  running-head-fontsize: 0.8em,
   nombre-font: auto,
   nombre-font-cjk: auto,
-  nombre-font-weight: "bold",
-  nombre-fontsize: 1em,
+  nombre-font-weight: auto,
+  nombre-fontsize: 0.8em,
   nombre: auto,
   odd-running-head: none,
   even-running-head: none,
   running-head-position: top + left,
   nombre-position: bottom + center,
-  running-head-fmt: a => a,
+  running-head-fmt: a => {
+    numbering(a.numbering,counter(heading).at(a.location()).at(0))
+    h(1em)
+    a.body
+  },
   nombre-fmt: a => a,
   sidemargin: 0cm,
   nombre-gap: auto,
@@ -435,25 +453,25 @@
       else { nombre-font-cjk }
     }
     let (h,f) = jlreq-get-header-footer(
-      running-head-font:   runhead-font,
-      running-head-font-cjk:   runhead-font-cjk,
-      running-head-font-weight:   running-head-font-weight,
-      running-head-fontsize:   running-head-fontsize,
-      nombre-font:   nomb-font,
-      nombre-font-cjk:   nomb-font-cjk,
-      nombre-font-weight:   nombre-font-weight,
-      nombre-fontsize:   nombre-fontsize,
-      nombre:   nombre,
-      odd-running-head:   odd-running-head,
-      even-running-head:   even-running-head,
-      running-head-position:   running-head-position,
-      nombre-position:   nombre-position,
-      running-head-fmt:   running-head-fmt,
-      nombre-fmt:   nombre-fmt,
-      sidemargin:   sidemargin,
-      nombre-gap:   nombre-gap,
-      running-head-gap:   running-head-gap,
-      gap:   gap,
+      running-head-font: runhead-font,
+      running-head-font-cjk: runhead-font-cjk,
+      running-head-font-weight: running-head-font-weight,
+      running-head-fontsize: running-head-fontsize,
+      nombre-font: nomb-font,
+      nombre-font-cjk: nomb-font-cjk,
+      nombre-font-weight: nombre-font-weight,
+      nombre-fontsize: nombre-fontsize,
+      nombre: nombre,
+      odd-running-head: odd-running-head,
+      even-running-head: even-running-head,
+      running-head-position: running-head-position,
+      nombre-position: nombre-position,
+      running-head-fmt: running-head-fmt,
+      nombre-fmt: nombre-fmt,
+      sidemargin: sidemargin,
+      nombre-gap: nombre-gap,
+      running-head-gap: running-head-gap,
+      gap: gap,
       )
     set page(header: h, footer: f)
     body
