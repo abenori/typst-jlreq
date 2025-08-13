@@ -135,24 +135,40 @@
   })
 }
 
-// 偶数最後奇数最初
-#let get-real-running-head(runhead, odd) = {
-  if runhead == none { return none }
-  else if type(runhead) == int {
-    let h = heading.where(level: runhead)
-    if odd == true {
-      return query(h.before(here())).at(-1,default: none)
-    } else {
-      return query(h.after(here())).at(0,default: none)
+#let jlreq-runin-heading(
+  label-font: auto,
+  label-font-weight: auto,
+  label-fontsize: 1em,
+  indent: 0em,
+  after-label-space: 1em,
+  label-fmt: a => a,
+  after-space: 1em,
+  head
+) = {
+  h(indent - {
+    if type(par.first-line-indent) == dictionary{
+      par.first-line-indent.at("amount", default: 10pt)
+    } else { par.first-line-indent } 
+  })
+  if head.numbering != none {
+    let cnt = [#counter(heading).display()]
+    if label-font != auto {
+      cnt = text(font: label-font,cnt)
     }
-  } else { return runhead }
+    if label-font-weight != auto {
+      cnt = text(weight: label-font-weight,cnt)
+    }
+    if label-fontsize != auto {
+      cnt = text(size: label-fontsize,cnt)
+    }
+    cnt
+    h(after-label-space)
+  }
+  head.body
+  h(after-space)
 }
 
-#let get-real-nombre(nombre) = {
-  if nombre == none { return [] }
-  else if nombre == auto { return counter(page).display() }
-  else { return nombre }
-}
+// 偶数最後奇数最初
 
 #let jlreq-get-header-footer(
   running-head-font: auto,
@@ -176,6 +192,24 @@
   gap: 1em,
 
 ) = {
+  let get-real-running-head(runhead, odd) = {
+    if runhead == none { return none }
+    else if type(runhead) == int {
+      let h = heading.where(level: runhead)
+      if odd == true {
+        return query(h.before(here())).at(-1,default: none)
+      } else {
+        return query(h.after(here())).at(0,default: none)
+      }
+    } else { return runhead }
+  }
+
+  let get-real-nombre(nombre) = {
+    if nombre == none { return [] }
+    else if nombre == auto { return counter(page).display() }
+    else { return nombre }
+  }
+
   if nombre-gap == auto { nombre-gap = gap }
   if running-head-gap == auto { running-head-gap = gap }
   //if running-head-font == auto { running-head-font = jlreq-seriffont.get() }
@@ -232,7 +266,7 @@
           if nombre-position.at(i, default: bottom + center) == pos {
             let nbr = get-real-nombre(nombre.at(i, default: none));
             if nbr != none {
-              nbr = text(font: ((name: nombre-font, covers: non-cjk), nombre-font-cjk),nbr)
+              nbr = text(font: ((name: nombre-font, covers: non-cjk), nombre-font-cjk),nombre-fmt(nbr))
               if nombre-font-weight != auto {
                 nbr = text(weight: nombre-font-weight, nbr)
               }
