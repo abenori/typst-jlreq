@@ -8,129 +8,10 @@
 #let jlreq-non-cjk = state("jlreq-non-cjk", regex("[\u0000-\u2023]"))
 #let jlreq-twoside = state("jlreq-twoside", false)
 
-#let papersizelist = (
-  a0paper: (841mm,1189mm),
-  a1paper: (594mm,841mm),
-  a2paper: (420mm,594mm),
-  a3paper: (297mm,420mm),
-  a4paper: (210mm,297mm),
-  a5paper: (148mm,210mm),
-  a6paper: (105mm,148mm),
-  a7paper: (74mm,105mm),
-  a8paper: (52mm,74mm),
-  a9paper: (37mm,52mm),
-  a10paper: (26mm,37mm),
-  a0: (841mm,1189mm),
-  a1: (594mm,841mm),
-  a2: (420mm,594mm),
-  a3: (297mm,420mm),
-  a4: (210mm,297mm),
-  a5: (148mm,210mm),
-  a6: (105mm,148mm),
-  a7: (74mm,105mm),
-  a8: (52mm,74mm),
-  a9: (37mm,52mm),
-  a10: (26mm,37mm),
 
-  b0paper: (1000mm,1414mm),
-  b1paper: (707mm,1000mm),
-  b2paper: (500mm,707mm),
-  b3paper: (353mm,500mm),
-  b4paper: (250mm,353mm),
-  b5paper: (176mm,250mm),
-  b6paper: (125mm,176mm),
-  b7paper: (88mm,125mm),
-  b8paper: (63mm,88mm),
-  b9paper: (44mm,63mm),
-  b10paper: (31mm,44mm),
-
-  b0j: (1030mm,1456mm),
-  b1j: (728mm,1030mm),
-  b2j: (515mm,728mm),
-  b3j: (364mm,515mm),
-  b4j: (257mm,364mm),
-  b5j: (182mm,257mm),
-  b6j: (128mm,182mm),
-  b7j: (91mm,128mm),
-  b8j: (64mm,91mm),
-  b9j: (45mm,64mm),
-  b10j: (32mm,45mm),
-
-  c2paper: (458mm,648mm),
-  c3paper: (324mm,458mm),
-  c4paper: (229mm,324mm),
-  c5paper: (162mm,229mm),
-  c6paper: (114mm,162mm),
-  c7paper: (81mm,114mm),
-  c8paper: (57mm,81mm),
-
-  a4var: (210mm,283mm),
-  b5var: (182mm,230mm),
-
-  letterpaper: (8.5in,11in),
-  legalpaper: (8.5in,14in),
-  executivepaper: (7.25in,10.5in),
-  hagaki: (100mm,148mm),
-
-  ansiapaper: (8.5in,11in),
-  ansibpaper: (11in,17in),
-  ansicpaper: (17in,22in),
-  ansidpaper: (22in,34in),
-  ansiepaper: (34in,44in),
-)
-
-#let jlreq_paper(paper) = {
-  if type(paper) == str { paper = papersizelist.at(paper) }
-  return paper
-}
-
-#let jlreq_hposition_without_column(paperwidth,line-length,fore-edge,gutter) = {
-  assert((line-length == auto) or (fore-edge == auto) or (gutter == auto),
-    message: "jlreq error: one of line-length, fore-edge, gutter must be auto")
-  if gutter != auto and fore-edge != auto { return (paperwidth - gutter - fore-edge,gutter,fore-edge) }
-  if line-length == auto { line-length = 0.75 * paperwidth }
-  if gutter != auto { return (line-length, gutter, paperwidth - line-length - gutter) }
-  else if fore-edge != auto { return (line-length, paperwidth - line-length - fore-edge, fore-edge) }
-  else {
-    let margin = (paperwidth - line-length) / 2
-    return (line-length, margin, margin)
-  }
-}
-
-// return (textwidth, gutter, fore-edge)
-#let jlreq_hposition(paperwidth,line-length,fore-edge,gutter,cols,column-gutter) = {
-  let (tw,g,f) = jlreq_hposition_without_column(paperwidth,line-length,fore-edge,gutter)
-  return (tw - (cols - 1) * column-gutter, g, f)
-}
 
 // return (textheight,topmargin,bottommargin)
 // margin = space between border of the space and the main text
-#let jlreq_vposition(paperheight, fontsize, baselineskip, number-of-lines, head-space, foot-space, headsep) = {
-  assert((number-of-lines == auto) or (head-space == auto) or (foot-space != auto),
-    message: "jlreq error: one of number-of-lines, head-space, foot-space must be auto")
-  let header-size = fontsize
-  if head-space != auto and foot-space != auto {
-    return (
-      paperheight - head-space - foot-space - 2 * header-size - 2 * headsep,
-      head-space + header-size + headsep,
-      foot-space + header-size + headsep)
-  }
-  let textheight = {
-    if number-of-lines == auto { 0.75 * paperheight }
-    else { baselineskip * (number-of-lines - 1) + fontsize }
-  }
-  if head-space != auto {
-    return (textheight,head-space + headier-size + headsep,
-      paperheight - textheight - head-space - headsep - header-size)
-  } else if foot-space != auto {
-    return (textheight, 
-      paperheight - textheight - foot-space - headsep - header-size,
-      foot-space + header-size + headsep)
-  } else {
-    let margin = (paperheight - textheight) / 2
-    return (textheight,margin,margin)
-  }
-}
 
 #let jlreq_gyodori(
   lines: 2,
@@ -510,8 +391,128 @@
   jlreq-non-cjk.update(non-cjk)
   jlreq-twoside.update(twoside)
 
-  if baselineskip == auto { baselineskip = 1.75 * fontsize }
-  let (paperwidth, paperheight) = jlreq_paper(paper)
+  let papersizelist = (
+    a0paper: (841mm,1189mm),
+    a1paper: (594mm,841mm),
+    a2paper: (420mm,594mm),
+    a3paper: (297mm,420mm),
+    a4paper: (210mm,297mm),
+    a5paper: (148mm,210mm),
+    a6paper: (105mm,148mm),
+    a7paper: (74mm,105mm),
+    a8paper: (52mm,74mm),
+    a9paper: (37mm,52mm),
+    a10paper: (26mm,37mm),
+    a0: (841mm,1189mm),
+    a1: (594mm,841mm),
+    a2: (420mm,594mm),
+    a3: (297mm,420mm),
+    a4: (210mm,297mm),
+    a5: (148mm,210mm),
+    a6: (105mm,148mm),
+    a7: (74mm,105mm),
+    a8: (52mm,74mm),
+    a9: (37mm,52mm),
+    a10: (26mm,37mm),
+
+    b0paper: (1000mm,1414mm),
+    b1paper: (707mm,1000mm),
+    b2paper: (500mm,707mm),
+    b3paper: (353mm,500mm),
+    b4paper: (250mm,353mm),
+    b5paper: (176mm,250mm),
+    b6paper: (125mm,176mm),
+    b7paper: (88mm,125mm),
+    b8paper: (63mm,88mm),
+    b9paper: (44mm,63mm),
+    b10paper: (31mm,44mm),
+
+    b0j: (1030mm,1456mm),
+    b1j: (728mm,1030mm),
+    b2j: (515mm,728mm),
+    b3j: (364mm,515mm),
+    b4j: (257mm,364mm),
+    b5j: (182mm,257mm),
+    b6j: (128mm,182mm),
+    b7j: (91mm,128mm),
+    b8j: (64mm,91mm),
+    b9j: (45mm,64mm),
+    b10j: (32mm,45mm),
+
+    c2paper: (458mm,648mm),
+    c3paper: (324mm,458mm),
+    c4paper: (229mm,324mm),
+    c5paper: (162mm,229mm),
+    c6paper: (114mm,162mm),
+    c7paper: (81mm,114mm),
+    c8paper: (57mm,81mm),
+
+    a4var: (210mm,283mm),
+    b5var: (182mm,230mm),
+
+    letterpaper: (8.5in,11in),
+    legalpaper: (8.5in,14in),
+    executivepaper: (7.25in,10.5in),
+    hagaki: (100mm,148mm),
+
+    ansiapaper: (8.5in,11in),
+    ansibpaper: (11in,17in),
+    ansicpaper: (17in,22in),
+    ansidpaper: (22in,34in),
+    ansiepaper: (34in,44in),
+  )
+  let jlreq_hposition_without_column(paperwidth,line-length,fore-edge,gutter) = {
+    assert((line-length == auto) or (fore-edge == auto) or (gutter == auto),
+      message: "jlreq error: one of line-length, fore-edge, gutter must be auto")
+    if gutter != auto and fore-edge != auto { return (paperwidth - gutter - fore-edge,gutter,fore-edge) }
+    if line-length == auto { line-length = 0.75 * paperwidth }
+    if gutter != auto { return (line-length, gutter, paperwidth - line-length - gutter) }
+    else if fore-edge != auto { return (line-length, paperwidth - line-length - fore-edge, fore-edge) }
+    else {
+      let margin = (paperwidth - line-length) / 2
+      return (line-length, margin, margin)
+    }
+  }
+
+  // return (textwidth, gutter, fore-edge)
+  let jlreq_hposition(paperwidth,line-length,fore-edge,gutter,cols,column-gutter) = {
+    let (tw,g,f) = jlreq_hposition_without_column(paperwidth,line-length,fore-edge,gutter)
+    return (tw - (cols - 1) * column-gutter, g, f)
+  }
+    if baselineskip == auto { baselineskip = 1.75 * fontsize }
+  let (paperwidth, paperheight) = {
+    if type(paper) == str { papersizelist.at(paper) }
+    else { paper }
+  }
+  
+  let jlreq_vposition(paperheight, fontsize, baselineskip, number-of-lines, head-space, foot-space, headsep) = {
+    assert((number-of-lines == auto) or (head-space == auto) or (foot-space != auto),
+      message: "jlreq error: one of number-of-lines, head-space, foot-space must be auto")
+    let header-size = fontsize
+    if head-space != auto and foot-space != auto {
+      return (
+        paperheight - head-space - foot-space - 2 * header-size - 2 * headsep,
+        head-space + header-size + headsep,
+        foot-space + header-size + headsep)
+    }
+    let textheight = {
+      if number-of-lines == auto { 0.75 * paperheight }
+      else { baselineskip * (number-of-lines - 1) + fontsize }
+    }
+    if head-space != auto {
+      return (textheight,head-space + headier-size + headsep,
+        paperheight - textheight - head-space - headsep - header-size)
+    } else if foot-space != auto {
+      return (textheight, 
+        paperheight - textheight - foot-space - headsep - header-size,
+        foot-space + header-size + headsep)
+    } else {
+      let margin = (paperheight - textheight) / 2
+      return (textheight,margin,margin)
+    }
+  }
+
+  
   let (textwidth, g,f) = jlreq_hposition(paperwidth, line-length, fore-edge, gutter, cols, column-gap)
   let (textheight, topmargin, bottommargin) = jlreq_vposition(paperheight, fontsize, baselineskip, number-of-lines, head-space, foot-space,headsep)
   set columns(gutter: column-gap * 2)
