@@ -39,6 +39,19 @@
       if type(after_space) == int { after_space * baselineskip }
       else { after_space }
     }
+    // 行数指定がない場合
+    if lines == none {
+      block(
+        spacing: 0pt,
+        inset: (
+          top: bef_sp,
+          bottom: aft_sp,
+          left: indent,
+          right: end-indent,
+        ),
+        txt)
+      return
+    }
     // 本文のテキスト長さの計算
     let textlen = {
       let totaltextlen = {
@@ -72,9 +85,7 @@
     }
     
     // とりあえずブロックに入れる
-    let b = block(spacing: 0cm, 
-    //inset: (left: indent, right: end-indent), 
-    width: textlen, txt)
+    let b = block(spacing: 0cm, width: textlen, txt)
     // 長さ計算
     let total_len = baselineskip * lines + letter_height
     let ue = (total_len - measure(b).height)/2 + bef_sp
@@ -94,32 +105,80 @@
 
 #set heading(numbering: "1")
 
+#let jlreq-tobira-heading(
+  type: "han",
+  header: [],
+  footer: [],
+  label-fmt: a => a,
+  fmt: (l,b) => {
+    v(1fr)
+    text(size: 2em,weight: "bold",
+      if l == none { b }
+      else { l + h(1em) + b }
+    )
+    v(1fr)
+  },
+  head
+) = {
+  assert(type == "han" or type == "naka", 
+    message: "jlreq-tobira-heading: type must be 'han' or 'naka'"
+  )
+  context{
+    pagebreak()
+    // 改丁
+    if calc.rem-euclid(here().page(),2) == 0 { 
+      set page(header: [], footer: [])
+      h(0pt) // 入れるとなんかうまく行く
+      pagebreak();
+    }
+    let origheader = page.header
+    let origfooter = page.footer
+    let cols = page.columns
+    set page(
+      header: header,
+      footer: footer,
+      columns: 1
+    )
+    fmt(label-fmt([#counter(heading).display()]),head.body)
+    pagebreak()
+    if type == "naka" {
+      set page(header: [], footer: [])
+      h(0pt)
+      pagebreak()
+    }
+    set page(
+      header: origheader,
+      footer: origfooter,
+      columns: cols
+    )
+  }
+}
+
 #let jlreq-block-heading(
   label-font: auto,
   label-font-weight: auto,
-//  label-font-cjk: auto,
+  label-font-cjk: auto,
   fontsize: 1em,
   label-fontsize: 1em,
   lines: 2,
-  before_space: 0,
-  after_space: 0,
+  before-space: 0,
+  after-space: 0,
   align: left,
   indent: 0em,
   after-label-space: 1em,
   end-indent: 0em,
+  fmt: (l,b) => {
+    if l == none { b }
+    else { l + b }
+  },
   head
 ) = {
-  jlreq_gyodori(
-    lines: lines,
-    before_space: before_space,
-    after_space: after_space,
-    indent: indent,
-    end-indent: end-indent,
-    al: align,
-  {
+  let label = {
     if head.numbering != none {
       let cnt = [#counter(heading).display()]
-      if label-font != auto {
+      if label-font != auto or label-font-cjk != auto {
+        if label-font == auto { label-font = jlreq-seriffont.get() }
+        if label-font-cjk == auto { label-font-cjk = jlreq-seriffont-cjk.get() }
         cnt = text(font: label-font,cnt)
       }
       if label-font-weight != auto {
@@ -128,11 +187,19 @@
       if label-fontsize != auto {
         cnt = text(size: label-fontsize,cnt)
       }
-      cnt
-      h(after-label-space)
-    }
-    head.body
-  })
+      cnt + h(after-label-space)
+    } else { none }
+  }
+
+  jlreq_gyodori(
+    lines: lines,
+    before_space: before-space,
+    after_space: after-space,
+    indent: indent,
+    end-indent: end-indent,
+    al: align,
+    fmt(label,head.body)
+  )
 }
 
 #let jlreq-runin-heading(
@@ -145,6 +212,7 @@
   after-space: 1em,
   head
 ) = {
+  parbreak()
   h(indent - {
     if type(par.first-line-indent) == dictionary{
       par.first-line-indent.at("amount", default: 10pt)
