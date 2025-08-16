@@ -19,7 +19,7 @@
   after_space: 0,
   indent: 0em,
   end-indent: 0em,
-  al: left,
+  align: left,
   txt
 ) = {
   context{
@@ -90,7 +90,7 @@
     let total_len = baselineskip * lines + letter_height
     let ue = (total_len - measure(b).height)/2 + bef_sp
     let shita = (total_len - measure(b).height)/2 + aft_sp
-    set align(al)
+    set std.align(align)
     block(
       spacing: 0pt,
       inset: (
@@ -107,8 +107,8 @@
 
 #let jlreq-tobira-heading(
   type: "han",
-  header: [],
-  footer: [],
+  header: auto,
+  footer: auto,
   label-fmt: a => a,
   fmt: (l,b) => {
     v(1fr)
@@ -134,13 +134,16 @@
     let origheader = page.header
     let origfooter = page.footer
     let cols = page.columns
+    set page(columns: 1)
+    let hc = { if header == auto { origheader} else { header}}
+    let fc = { if footer == auto { origfooter} else { footer}}
     set page(
-      header: header,
-      footer: footer,
+      header: hc,
+      footer: fc,
       columns: 1
     )
     fmt(label-fmt([#counter(heading).display()]),head.body)
-    pagebreak()
+    pagebreak(weak: true)
     if type == "naka" {
       set page(header: [], footer: [])
       h(0pt)
@@ -171,8 +174,45 @@
     if l == none { b }
     else { l + b }
   },
+  pagestyle: "nariyuki",
+  allowbreak_if_evenpage: false, // does not work currently
   head
 ) = {
+  assert(
+    pagestyle == "nariyuki" or
+    pagestyle == "clearpage" or
+    pagestyle == "cleardoublepage" or
+    pagestyle == "clearcolumn"  or
+    pagestyle == "begin_with_odd_page" or 
+    pagestyle == "begin_with_even_page",
+    message: "jlreq-block-heading: invalid pagestyle " + pagestyle
+  )
+  if pagestyle != "nariyuki" {
+    if pagestyle == "clearcolumn" {
+      colbreak(weak: true)
+    } else {
+      pagebreak(weak: true)
+      if pagestyle != "clearpage" {
+        let origheader = page.header
+        let origfooter = page.footer
+        // cleardoublepage = begin_with_odd_page
+        let evenodd = {
+          if pagestyle == "begin_with_even_page" { 1 }
+          else { 0 }
+        }
+        if calc.rem-euclid(here().page(),2) == evenodd { 
+          set page(header: [], footer: [])
+          h(0pt)
+          pagebreak();
+          set page(
+            header: origheader,
+            footer: origfooter
+          )
+        }
+      }
+    }
+  }
+
   let label = {
     if head.numbering != none {
       let cnt = [#counter(heading).display()]
@@ -197,7 +237,7 @@
     after_space: after-space,
     indent: indent,
     end-indent: end-indent,
-    al: align,
+    align: align,
     fmt(label,head.body)
   )
 }
