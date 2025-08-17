@@ -1,5 +1,3 @@
-// Template based on LaTeX jsarticle/jsbook for Typst 0.13
-
 #let jlreq-column-gap = state("jlreq-column-gap",1em)
 #let jlreq-seriffont = state("jlreq-setriffont", "New Computer Modern")
 #let jlreq-seriffont-cjk = state("jlreq-seriffont-cjk","Hiragino Mincho ProN")
@@ -7,7 +5,6 @@
 #let jlreq-sansfont-cjk = state("jlreq-sansfont-cjk","Hiragino Kaku Gothic ProN")
 #let jlreq-non-cjk = state("jlreq-non-cjk", regex("[\u0000-\u2023]"))
 #let jlreq-twoside = state("jlreq-twoside", false)
-
 
 
 // return (textheight,topmargin,bottommargin)
@@ -703,4 +700,43 @@
   )
   set enum(numbering: "(1.1)")
   body
+}
+
+#let maketitle(
+  authors: [],
+  title: [],
+  date: auto
+) = {
+  authors = {
+    if type(authors) != array { (authors,) }
+    else { authors }
+  }
+  if date == auto {
+    date = datetime.today()
+  }
+  let datestr = {
+    if date == none { none }
+    else { [#date.year();年#date.month();月#date.day();日] }
+  }
+  let authorsstr = authors.fold(
+    none,
+    (a,b) => {
+      if a == none { b }
+      else { a + h(1em) +  b }
+    }
+  )
+
+  context{
+    v(4*(text.size + par.leading))
+    stack(
+      dir: ttb,
+      spacing: 0.75em,
+      align(center,{text(size: 2em, title)}),
+      align(center,{text(size: 1em, authorsstr)}),
+      if datestr != none { align(center, text(datestr)) }
+    )
+    v(text.size + par.leading)
+  }
+
+
 }
