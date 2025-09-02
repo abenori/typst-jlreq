@@ -284,18 +284,14 @@
   nombre-font-cjk: auto,
   nombre-font-weight: auto,
   nombre-fontsize: 0.8em,
-  nombre: auto,
-  odd-running-head: none,
-  even-running-head: none,
-  running-head-position: top + left,
-  nombre-position: bottom + center,
+  nombre: ((nombre: auto, position: bottom + center),),
+  running-head: ((odd: none, even: none, position: top + left),),
   running-head-fmt: a => a.body,
   nombre-fmt: a => a,
   sidemargin: 0cm,
   nombre-gap: auto,
   running-head-gap: auto,
   gap: 1em,
-
 ) = {
   let get-real-running-head(runhead, odd) = {
     if runhead == none { return none }
@@ -322,11 +318,8 @@
   //if nombre-font == auto { nombre-font = jlreq-sansfont.get() }
   //if nombre-font-cjk == auto { nombre-font-cjk = jlreq-sansfont-cjk.get() }
 
-  if type(odd-running-head) != array { odd-running-head = (odd-running-head,) }
-  if type(even-running-head) != array { even-running-head = (even-running-head,) }
+  if type(running-head) != array { running-head = (running-head,) }
   if type(nombre) != array { nombre = (nombre,) }
-  if type(running-head-position) != array { running-head-position = (running-head-position,) }
-  if type(nombre-position) != array { nombre-position = (nombre-position,) }
 
   let each-parts(pos) = {
     context{
@@ -339,13 +332,13 @@
       let runheads = {
         let i = 0;
         let rv = none;
-        while(i < odd-running-head.len()) {
-          if(running-head-position.at(i, default: top + center) == pos){
+        while(i < running-head.len()){
+          if(type(running-head.at(i).at("position", default: top + center)) == pos){
             let runhead = {
               if odd == true {
-                get-real-running-head(odd-running-head.at(i,default: none), true)
+                get-real-running-head(running-head.at(i).at("odd", default: none), true)
               } else {
-                get-real-running-head(even-running-head.at(i,default: none), false)
+                get-real-running-head(running-head.at(i).at("even", default: none), false)
               }
             }
             if runhead != none {
@@ -368,8 +361,8 @@
         let i = 0
         let rv = none
         while(i < nombre.len()){
-          if nombre-position.at(i, default: bottom + center) == pos {
-            let nbr = get-real-nombre(nombre.at(i, default: none));
+          if nombre.at(i).at("position", default: bottom + center) == pos {
+            let nbr = get-real-nombre(nombre.at(i).at("nombre", default: none));
             if nbr != none {
               nbr = text(font: ((name: nombre-font, covers: non-cjk), nombre-font-cjk),nombre-fmt(nbr))
               if nombre-font-weight != auto {
@@ -388,7 +381,6 @@
         }
         rv
       }
-
 
       return {
         if runheads == none {
@@ -438,11 +430,8 @@
   nombre-font-cjk: auto,
   nombre-font-weight: auto,
   nombre-fontsize: 0.8em,
-  nombre: auto,
-  odd-running-head: none,
-  even-running-head: none,
-  running-head-position: top + left,
-  nombre-position: bottom + center,
+  nombre: (nombre: auto, position: bottom + center),
+  running-head: (odd: none, even: none, position: top + left),
   running-head-fmt: a => {
     numbering(a.numbering,counter(heading).at(a.location()).at(0))
     h(1em)
@@ -482,10 +471,7 @@
       nombre-font-weight: nombre-font-weight,
       nombre-fontsize: nombre-fontsize,
       nombre: nombre,
-      odd-running-head: odd-running-head,
-      even-running-head: even-running-head,
-      running-head-position: running-head-position,
-      nombre-position: nombre-position,
+      running-head: running-head,
       running-head-fmt: running-head-fmt,
       nombre-fmt: nombre-fmt,
       sidemargin: sidemargin,
@@ -499,9 +485,9 @@
 }
 
 #let jlreq(  
-  seriffont: "New Computer Modern", // or "Libertinus Serif" or "Source Serif Pro"
+  seriffont: "New Computer Modern",
   seriffont-cjk: "Hiragino Mincho ProN", // or "Yu Mincho" or "Hiragino Mincho ProN"
-  sansfont: "New Computer Modern", // or "Arial" or "New Computer Modern Sans" or "Libertinus Sans"
+  sansfont: "New Computer Modern",
   sansfont-cjk: "Hiragino Kaku Gothic ProN", // or "Yu Gothic" or "Hiragino Kaku Gothic ProN"
   fontsize: 10pt,
   baselineskip: auto,
@@ -618,11 +604,6 @@
     let (tw,g,f) = jlreq_hposition_without_column(paperwidth,line-length,fore-edge,gutter)
     return (tw - (cols - 1) * column-gutter, g, f)
   }
-    if baselineskip == auto { baselineskip = 1.75 * fontsize }
-  let (paperwidth, paperheight) = {
-    if type(paper) == str { papersizelist.at(paper) }
-    else { paper }
-  }
   
   let jlreq_vposition(paperheight, fontsize, baselineskip, number-of-lines, head-space, foot-space, headsep) = {
     assert((number-of-lines == auto) or (head-space == auto) or (foot-space != auto),
@@ -652,6 +633,11 @@
   }
 
   
+  if baselineskip == auto { baselineskip = 1.75 * fontsize }
+  let (paperwidth, paperheight) = {
+    if type(paper) == str { papersizelist.at(paper) }
+    else { paper }
+  }
   let (textwidth, g,f) = jlreq_hposition(paperwidth, line-length, fore-edge, gutter, cols, column-gap)
   let (textheight, topmargin, bottommargin) = jlreq_vposition(paperheight, fontsize, baselineskip, number-of-lines, head-space, foot-space,headsep)
   set columns(gutter: column-gap * 2)
