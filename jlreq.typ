@@ -689,7 +689,7 @@
 }
 
 #let maketitle(
-  authors: [],
+  authors: ([],),
   title: [],
   date: auto
 ) = {
@@ -702,7 +702,9 @@
   }
   let datestr = {
     if date == none { none }
-    else { [#date.year();年#date.month();月#date.day();日] }
+    else if(type(date) == datetime ) {
+      date.display("[year]年[month]月[day]日")      
+    } else { date }
   }
   let authorsstr = authors.fold(
     none,
