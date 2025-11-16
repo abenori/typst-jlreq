@@ -486,9 +486,9 @@
 
 #let jlreq(  
   seriffont: "New Computer Modern",
-  seriffont-cjk: "Hiragino Mincho ProN", // or "Yu Mincho" or "Hiragino Mincho ProN"
-  sansfont: "New Computer Modern",
-  sansfont-cjk: "Hiragino Kaku Gothic ProN", // or "Yu Gothic" or "Hiragino Kaku Gothic ProN"
+  seriffont-cjk: "Harano Aji Mincho", // or "Hiragino Mincho ProN" or "Yu Mincho"
+  sansfont: "Source Sans Pro",
+  sansfont-cjk: "Harano Aji Gothic", // or "Yu Gothic" or "Hiragino Kaku Gothic ProN"
   fontsize: 10pt,
   baselineskip: auto,
   // 基本版面
@@ -516,6 +516,133 @@
   jlreq-non-cjk.update(non-cjk)
   jlreq-twoside.update(twoside)
 
+  let typstpapersizelist = (
+    a0: (841.0mm,1189.0mm),
+    a1: (594.0mm,841.0mm),
+    a2: (420.0mm,594.0mm),
+    a3: (297.0mm,420.0mm),
+    a4: (210.0mm,297.0mm),
+    a5: (148.0mm,210.0mm),
+    a6: (105.0mm,148.0mm),
+    a7: (74.0mm,105.0mm),
+    a8: (52.0mm,74.0mm),
+    a9: (37.0mm,52.0mm),
+    a10: (26.0mm,37.0mm),
+    a11: (18.0mm,26.0mm),
+
+    iso-b1: (707.0mm,1000.0mm),
+    iso-b2: (500.0mm,707.0mm),
+    iso-b3: (353.0mm,500.0mm),
+    iso-b4: (250.0mm,353.0mm),
+    iso-b5: (176.0mm,250.0mm),
+    iso-b6: (125.0mm,176.0mm),
+    iso-b7: (88.0mm,125.0mm),
+    iso-b8: (62.0mm,88.0mm),
+
+    iso-c3: (324.0mm,458.0mm),
+    iso-c4: (229.0mm,324.0mm),
+    iso-c5: (162.0mm,229.0mm),
+    iso-c6: (114.0mm,162.0mm),
+    iso-c7: (81.0mm,114.0mm),
+    iso-c8: (57.0mm,81.0mm),
+
+    din-d3: (272.0mm,385.0mm),
+    din-d4: (192.0mm,272.0mm),
+    din-d5: (136.0mm,192.0mm),
+    din-d6: (96.0mm,136.0mm),
+    din-d7: (68.0mm,96.0mm),
+    din-d8: (48.0mm,68.0mm),
+
+    sis-g5: (169.0mm,239.0mm),
+    sis-e5: (115.0mm,220.0mm),
+
+    ansi-a: (216.0mm,279.0mm),
+    ansi-b: (279.0mm,432.0mm),
+    ansi-c: (432.0mm,559.0mm),
+    ansi-d: (559.0mm,864.0mm),
+    ansi-e: (864.0mm,1118.0mm),
+
+    arch-a: (229.0mm,305.0mm),
+    arch-b: (305.0mm,457.0mm),
+    arch-c: (457.0mm,610.0mm),
+    arch-d: (610.0mm,914.0mm),
+    arch-e1: (762.0mm,1067.0mm),
+    arch-e: (914.0mm,1219.0mm),
+
+    jis-b0: (1030.0mm,1456.0mm),
+    jis-b1: (728.0mm,1030.0mm),
+    jis-b2: (515.0mm,728.0mm),
+    jis-b3: (364.0mm,515.0mm),
+    jis-b4: (257.0mm,364.0mm),
+    jis-b5: (182.0mm,257.0mm),
+    jis-b6: (128.0mm,182.0mm),
+    jis-b7: (91.0mm,128.0mm),
+    jis-b8: (64.0mm,91.0mm),
+    jis-b9: (45.0mm,64.0mm),
+    jis-b10: (32.0mm,45.0mm),
+    jis-b11: (22.0mm,32.0mm),
+
+    sac-d0: (764.0mm,1064.0mm),
+    sac-d1: (532.0mm,760.0mm),
+    sac-d2: (380.0mm,528.0mm),
+    sac-d3: (264.0mm,376.0mm),
+    sac-d4: (188.0mm,260.0mm),
+    sac-d5: (130.0mm,184.0mm),
+    sac-d6: (92.0mm,126.0mm),
+
+    iso-id-1: (85.6mm,53.98mm),
+    iso-id-2: (74.0mm,105.0mm),
+    iso-id-3: (88.0mm,125.0mm),
+
+    asia-f4: (210.0mm,330.0mm),
+
+    jp-shiroku-ban-4: (264.0mm,379.0mm),
+    jp-shiroku-ban-5: (189.0mm,262.0mm),
+    jp-shiroku-ban-6: (127.0mm,188.0mm),
+    jp-kiku-4: (227.0mm,306.0mm),
+    jp-kiku-5: (151.0mm,227.0mm),
+    jp-business-card: (91.0mm,55.0mm),
+
+    cn-business-card: (90.0mm,54.0mm),
+
+    eu-business-card: (85.0mm,55.0mm),
+
+    fr-tellière: (340.0mm,440.0mm),
+    fr-couronne-écriture: (360.0mm,460.0mm),
+    fr-couronne-édition: (370.0mm,470.0mm),
+    fr-raisin: (500.0mm,650.0mm),
+    fr-carré: (450.0mm,560.0mm),
+    fr-jésus: (560.0mm,760.0mm),
+
+    uk-brief: (406.4mm,342.9mm),
+    uk-draft: (254.0mm,406.4mm),
+    uk-foolscap: (203.2mm,330.2mm),
+    uk-quarto: (203.2mm,254.0mm),
+    uk-crown: (508.0mm,381.0mm),
+    uk-book-a: (111.0mm,178.0mm),
+    uk-book-b: (129.0mm,198.0mm),
+
+    us-letter: (215.9mm,279.4mm),
+    us-legal: (215.9mm,355.6mm),
+    us-tabloid: (279.4mm,431.8mm),
+    us-executive: (84.15mm,266.7mm),
+    us-foolscap-folio: (215.9mm,342.9mm),
+    us-statement: (139.7mm,215.9mm),
+    us-ledger: (431.8mm,279.4mm),
+    us-oficio: (215.9mm,340.36mm),
+    us-gov-letter: (203.2mm,266.7mm),
+    us-gov-legal: (215.9mm,330.2mm),
+    us-business-card: (88.9mm,50.8mm),
+    us-digest: (139.7mm,215.9mm),
+    us-trade: (152.4mm,228.6mm),
+
+    newspaper-compact: (280.0mm,430.0mm),
+    newspaper-berliner: (315.0mm,470.0mm),
+    newspaper-broadsheet: (381.0mm,578.0mm),
+    presentation-16-9: (297.0mm,167.0625mm),
+    presentation-4-3: (280.0mm,210.0mm),
+  )
+
   let papersizelist = (
     a0paper: (841mm,1189mm),
     a1paper: (594mm,841mm),
@@ -539,6 +666,7 @@
     a8: (52mm,74mm),
     a9: (37mm,52mm),
     a10: (26mm,37mm),
+    a11: (18mm,26mm),
 
     b0paper: (1000mm,1414mm),
     b1paper: (707mm,1000mm),
@@ -571,6 +699,7 @@
     c6paper: (114mm,162mm),
     c7paper: (81mm,114mm),
     c8paper: (57mm,81mm),
+
 
     a4var: (210mm,283mm),
     b5var: (182mm,230mm),
@@ -634,10 +763,14 @@
 
   
   if baselineskip == auto { baselineskip = 1.75 * fontsize }
+
   let (paperwidth, paperheight) = {
-    if type(paper) == str { papersizelist.at(paper) }
+    if type(paper) == str { 
+      typstpapersizelist.at(paper,default: papersizelist.at(paper, default: (none,none)))
+    }
     else { paper }
   }
+  assert(paperwidth != none , message : "jlreq error: unknown paper size: " + paper)
   let (textwidth, g,f) = jlreq_hposition(paperwidth, line-length, fore-edge, gutter, cols, column-gap)
   let (textheight, topmargin, bottommargin) = jlreq_vposition(paperheight, fontsize, baselineskip, number-of-lines, head-space, foot-space,headsep)
   set columns(gutter: column-gap * 2)
